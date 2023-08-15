@@ -2,12 +2,16 @@ import React, { useState } from "react";
 import Image from "../Components/Image";
 import reg from "../assets/reg.png";
 import { Alert, Button, TextField, Typography } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 import { RotatingLines } from "react-loader-spinner";
-import {  toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Registration = () => {
   const auth = getAuth();
@@ -15,6 +19,11 @@ const Registration = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [open, setOpen] = useState(false);
+  const navigate=useNavigate();
+  const [notificationBackgroundColor, setNotificationBackgroundColor] = useState({
+    success : "#5F35F5",
+    error: "#fff"
+  });
 
   const [fromData, setFromData] = useState({
     fullName: "",
@@ -66,37 +75,59 @@ const Registration = () => {
             if(fromData.fullName.length > 3 && fromData.fullName.length< 30){
                 setFullNameError("Enter Valid Name")
             } */
-      const { email, password } = fromData;
-      setLoader(true)
+      
+       const { email, password } = fromData;
+      setLoader(true);
       createUserWithEmailAndPassword(auth, email, password)
-        .then((user) => {
-          setFromData({
-            fullName: "",
-            email: "",
-            password: "",
+        .then((user) => {  
+          sendEmailVerification(auth.currentUser).then(() => {
+            setFromData({
+              fullName: "",
+              email: "",
+              password: "",
+            });
+               setLoader(false);
+              toast.success(`Registration Successful! Please Verify Your Email`, {
+                position: "top-center",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+                style: { '--dynamic-bg-color': notificationBackgroundColor.success },
+              })
+              setTimeout(()=>{
+                navigate("/login")
+              },1000)   
+          })
+ 
+          })
+          .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+          
+           if(errorCode.includes("email")){
+            setLoader(false);
+            toast.error(`Email All Ready Exist`, {
+              position: "top-center",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              style: { '--dynamic-bg-color':  notificationBackgroundColor.error}
+              
+              
+            })
+            setEmailError(errorCode)
+           }
           });
-
-          setLoader(false)
-
-          setTimeout(
-            toast.success(`Registration Successful`, {
-            position: "top-center",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-            }),1000)
-
-        })
-        .catch((error) => {
-          const errorCode = error.code;
-          const errorMessage = error.message;
-          console.log(errorMessage);
-          // ..
-        });
+        
+         
     }
   };
   return (
@@ -163,29 +194,25 @@ const Registration = () => {
             </Alert>
           )}
 
-          {loader ?
-          <Button
-            className="SignUpBtn"
-          >
-         <RotatingLines
-            strokeColor="grey"
-            strokeWidth="5"
-            animationDuration="0.75"
-            width="60"
-            visible={true}
-          />
-          </Button>  :
-          <Button
-            variant="contained"
-            onClick={handleRegistration}
-            className="SignUpBtn"
-          >
-            Sign up
-          </Button>
-
-          }
-
-
+          {loader ? (
+            <Button className="SignUpBtn">
+              <RotatingLines
+                strokeColor="grey"
+                strokeWidth="5"
+                animationDuration="0.75"
+                width="60"
+                visible={true}
+              />
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={handleRegistration}
+              className="SignUpBtn"
+            >
+              Sign up
+            </Button>
+          )}
 
           <Typography variant="p" component="p" className="semiText">
             Already have an account ? <Link className="orange">Sign In</Link>

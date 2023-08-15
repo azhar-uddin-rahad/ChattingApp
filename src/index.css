@@ -73,3 +73,12 @@
   top: 75px;
   right: 31px;
 }
+
+.Toastify {
+  background-color: #5F35F5 !important; /* Change this to your desired background color */
+}
+
+/* Change the background color of the individual notifications */
+.Toastify__toast {
+  background-color:  var(--dynamic-bg-color) !important; /* Change this to your desired background color */
+}

@@ -87,7 +87,7 @@ const Registration = () => {
               password: "",
             });
                setLoader(false);
-              toast.success(`Registration Successful! Please Verify Your Email`, {
+                toast.success(`Registration Successful! Please Verify Your Email`, {
                 position: "top-center",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -200,7 +200,7 @@ const Registration = () => {
                 strokeColor="grey"
                 strokeWidth="5"
                 animationDuration="0.75"
-                width="60"
+                width="20"
                 visible={true}
               />
             </Button>

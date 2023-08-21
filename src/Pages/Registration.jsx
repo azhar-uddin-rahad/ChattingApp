@@ -215,7 +215,7 @@ const Registration = () => {
           )}
 
           <Typography variant="p" component="p" className="semiText">
-            Already have an account ? <Link className="orange">Sign In</Link>
+            Already have an account ? <Link className="orange" to="/login">Sign In</Link>
           </Typography>
         </div>
       </div>

@@ -191,7 +191,7 @@ const [loader, setLoader] = useState(false);
           )}
          
           <Typography variant="p" component="p" className="semiText">
-            Don’t have an account ? <Link className="orange"> Sign up</Link>
+            Don’t have an account ? <Link className="orange" to="/"> Sign up</Link>
           </Typography>
         </div>
       </div>

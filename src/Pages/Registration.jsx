@@ -134,7 +134,7 @@ const Registration = () => {
     <div className="authenticationPage">
       <div className="left">
         <div className="text-container">
-          <h1>Get started with easily register</h1>
+          <h1>Get started with Azhar uddin rahad</h1>
 
           <p>Free register and you can enjoy it</p>
 

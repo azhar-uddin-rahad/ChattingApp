@@ -12,6 +12,8 @@ import {
 import { RotatingLines } from "react-loader-spinner";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
 
 const Registration = () => {
   const auth = getAuth();
@@ -20,6 +22,12 @@ const Registration = () => {
   const [passwordError, setPasswordError] = useState("");
   const [open, setOpen] = useState(false);
   const navigate=useNavigate();
+  const isLoginUserData=useSelector((state)=>(state.loginUser.value));
+  useEffect(()=>{
+    if(isLoginUserData){
+      navigate("/home")
+    }
+  },[isLoginUserData])
   const [notificationBackgroundColor, setNotificationBackgroundColor] = useState({
     success : "#5F35F5",
     error: "#fff"

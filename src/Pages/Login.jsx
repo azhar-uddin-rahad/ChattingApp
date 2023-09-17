@@ -4,19 +4,24 @@ import log from "../assets/log.png";
 import { Alert, Button, TextField, Typography } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import {getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import {getAuth, signInWithEmailAndPassword,FacebookAuthProvider,signInWithPopup,GoogleAuthProvider } from "firebase/auth";
 import { RotatingLines } from "react-loader-spinner";
 import { toast } from "react-toastify";
-
+import google from '../assets/image 4 (1).png'
+import {FaFacebook} from 'react-icons/fa'
+import { useDispatch } from "react-redux";
+import { logUser } from "../slice/UserSlice";
 const Login = () => {
     const auth = getAuth();
-    const navigate=useNavigate()
+    const navigate=useNavigate();
+    const dispatch=useDispatch()
 
 const [loader, setLoader] = useState(false);
   const [fromData, setFromData] = useState({
     email: "",
     password: "",
   });
+  const [faUser,setFaUser]=useState(null)
   const [notificationBackgroundColor, setNotificationBackgroundColor] = useState({
     success : "#5F35F5",
     error: "#fff"
@@ -55,7 +60,7 @@ const [loader, setLoader] = useState(false);
         setLoader(true)
       signInWithEmailAndPassword(auth, fromData.email, fromData.password)
         .then((user) => {
-        console.log()
+       
         setLoader(false);
         if(user.user.emailVerified){
             setFromData({
@@ -76,6 +81,7 @@ const [loader, setLoader] = useState(false);
               
               setTimeout(()=>{
                 navigate("/home")
+                dispatch(logUser(user.user))
               },1000)
         }
         else{
@@ -120,6 +126,51 @@ const [loader, setLoader] = useState(false);
         });
     }
   };
+const handleFaLogin=async()=>{
+  try {
+    const provider = new FacebookAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+
+    const user = result.user;
+    const credential = FacebookAuthProvider.credentialFromResult(result);
+    const accessToken = credential.accessToken;
+
+    // Update the user state
+    setFaUser(user);
+
+    console.log('Facebook user:', user);
+    console.log('Access token:', accessToken);
+  }
+  catch (error) {
+    // Handle Errors here.
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    if (errorCode === 'auth/popup-closed-by-user') {
+      console.log('User closed the popup');
+    } else {
+      console.error('Error code:', errorCode);
+      console.error('Error message:', errorMessage);
+    }
+  }
+  console.log('Current faUser:', faUser);
+};
+const singUpWithGoogle=()=>{
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
+  .then((result) => {
+    const user = result.user;
+    console.log(user)
+   
+  }).catch((error) => {
+   
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    console.log(errorCode)
+      console.log(errorMessage)
+ 
+  });
+
+}
 
   return (
     <div className="authenticationPage">
@@ -191,8 +242,12 @@ const [loader, setLoader] = useState(false);
           )}
          
           <Typography variant="p" component="p" className="semiText">
-            Don’t have an account ? <Link className="orange"> Sign up</Link>
+            Don’t have an account ? <Link className="orange" to="/"> Sign up</Link>
           </Typography>
+        <div className="loginWithAccount">
+            <button onClick={singUpWithGoogle}><img src={google} alt="" /></button>
+            <button onClick={handleFaLogin}><FaFacebook></FaFacebook></button>
+        </div>
         </div>
       </div>
       <div className="right">

@@ -82,6 +82,7 @@ const [loader, setLoader] = useState(false);
               setTimeout(()=>{
                 navigate("/home")
                 dispatch(logUser(user.user))
+                
               },1000)
         }
         else{

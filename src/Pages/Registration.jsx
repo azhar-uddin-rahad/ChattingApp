@@ -142,7 +142,7 @@ const Registration = () => {
     <div className="authenticationPage">
       <div className="left">
         <div className="text-container">
-          <h1>Get started with easily register</h1>
+          <h1>Get started with Azhar uddin rahad</h1>
 
           <p>Free register and you can enjoy it</p>
 
@@ -223,7 +223,7 @@ const Registration = () => {
           )}
 
           <Typography variant="p" component="p" className="semiText">
-            Already have an account ? <Link className="orange">Sign In</Link>
+            Already have an account ? <Link className="orange" to="/login">Sign In</Link>
           </Typography>
         </div>
       </div>

@@ -14,6 +14,7 @@ const isLoginUserData=useSelector((state)=>(state.loginUser.value))
 const handleSignOut=()=>{
     signOut(auth).then(() => {
         dispatch(logUser(null))
+        localStorage.removeItem("userInfo")
         navigate("/login")
       })
 }

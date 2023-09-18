@@ -4,10 +4,12 @@ import reg from "../assets/reg.png";
 import { Alert, Button, TextField, Typography } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { getDatabase, push, ref, set } from "firebase/database";
 import {
   getAuth,
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  updateProfile,
 } from "firebase/auth";
 import { RotatingLines } from "react-loader-spinner";
 import { toast } from "react-toastify";
@@ -21,17 +23,18 @@ const Registration = () => {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [open, setOpen] = useState(false);
-  const navigate=useNavigate();
-  const isLoginUserData=useSelector((state)=>(state.loginUser.value));
-  useEffect(()=>{
-    if(isLoginUserData){
-      navigate("/home")
+  const navigate = useNavigate();
+  const isLoginUserData = useSelector((state) => state.loginUser.value);
+  useEffect(() => {
+    if (isLoginUserData) {
+      navigate("/home");
     }
-  },[isLoginUserData])
-  const [notificationBackgroundColor, setNotificationBackgroundColor] = useState({
-    success : "#5F35F5",
-    error: "#fff"
-  });
+  }, [isLoginUserData]);
+  const [notificationBackgroundColor, setNotificationBackgroundColor] =
+    useState({
+      success: "#5F35F5",
+      error: "#fff",
+    });
 
   const [fromData, setFromData] = useState({
     fullName: "",
@@ -83,40 +86,59 @@ const Registration = () => {
             if(fromData.fullName.length > 3 && fromData.fullName.length< 30){
                 setFullNameError("Enter Valid Name")
             } */
-      
-       const { email, password } = fromData;
+
+      const { email, password } = fromData;
       setLoader(true);
       createUserWithEmailAndPassword(auth, email, password)
-        .then((user) => {  
-          sendEmailVerification(auth.currentUser).then(() => {
-            setFromData({
-              fullName: "",
-              email: "",
-              password: "",
-            });
-               setLoader(false);
-                toast.success(`Registration Successful! Please Verify Your Email`, {
-                position: "top-center",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                style: { '--dynamic-bg-color': notificationBackgroundColor.success },
+        .then((user) => {
+          updateProfile(auth.currentUser, {
+            displayName: fromData.fullName,
+            photoURL: "https://ibb.co/Qnf4m1K",
+          }).then(() => {
+            sendEmailVerification(auth.currentUser)
+              .then(() => {
+                setFromData({
+                  fullName: "",
+                  email: "",
+                  password: "",
+                });
+                setLoader(false);
+                toast.success(
+                  `Registration Successful! Please Verify Your Email`,
+                  {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    theme: "colored",
+                    style: {
+                      "--dynamic-bg-color": notificationBackgroundColor.success,
+                    },
+                  }
+                );
+                setTimeout(() => {
+                  navigate("/login");
+                }, 1000);
               })
-              setTimeout(()=>{
-                navigate("/login")
-              },1000)   
-          })
- 
-          })
-          .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-          
-           if(errorCode.includes("email")){
+              .then(() => {
+                console.log(user);
+                const db = getDatabase();
+                set(push(ref(db, "users/")), {
+                  username: user.user.displayName,
+                  email: user.user.email,
+                  photoURL: user.user.photoURL,
+                });
+              });
+          });
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+
+          if (errorCode.includes("email")) {
             setLoader(false);
             toast.error(`Email All Ready Exist`, {
               position: "top-center",
@@ -127,15 +149,13 @@ const Registration = () => {
               draggable: true,
               progress: undefined,
               theme: "light",
-              style: { '--dynamic-bg-color':  notificationBackgroundColor.error}
-              
-              
-            })
-            setEmailError(errorCode)
-           }
-          });
-        
-         
+              style: {
+                "--dynamic-bg-color": notificationBackgroundColor.error,
+              },
+            });
+            setEmailError(errorCode);
+          }
+        });
     }
   };
   return (
@@ -223,7 +243,10 @@ const Registration = () => {
           )}
 
           <Typography variant="p" component="p" className="semiText">
-            Already have an account ? <Link className="orange" to="/login">Sign In</Link>
+            Already have an account ?{" "}
+            <Link className="orange" to="/login">
+              Sign In
+            </Link>
           </Typography>
         </div>
       </div>

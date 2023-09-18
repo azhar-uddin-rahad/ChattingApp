@@ -2,30 +2,38 @@ import React, { useState } from "react";
 import Image from "../Components/Image";
 import log from "../assets/log.png";
 import { Alert, Button, TextField, Typography } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, json, useNavigate } from "react-router-dom";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import {getAuth, signInWithEmailAndPassword,FacebookAuthProvider,signInWithPopup,GoogleAuthProvider } from "firebase/auth";
+import { getDatabase, push, ref, set } from "firebase/database";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  FacebookAuthProvider,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
 import { RotatingLines } from "react-loader-spinner";
 import { toast } from "react-toastify";
-import google from '../assets/image 4 (1).png'
-import {FaFacebook} from 'react-icons/fa'
+import google from "../assets/image 4 (1).png";
+import { FaFacebook } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { logUser } from "../slice/UserSlice";
 const Login = () => {
-    const auth = getAuth();
-    const navigate=useNavigate();
-    const dispatch=useDispatch()
+  const auth = getAuth();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-const [loader, setLoader] = useState(false);
+  const [loader, setLoader] = useState(false);
   const [fromData, setFromData] = useState({
     email: "",
     password: "",
   });
-  const [faUser,setFaUser]=useState(null)
-  const [notificationBackgroundColor, setNotificationBackgroundColor] = useState({
-    success : "#5F35F5",
-    error: "#fff"
-  });
+  const [faUser, setFaUser] = useState(null);
+  const [notificationBackgroundColor, setNotificationBackgroundColor] =
+    useState({
+      success: "#5F35F5",
+      error: "#fff",
+    });
 
   const [error, setError] = useState({
     emailError: "",
@@ -57,60 +65,58 @@ const [loader, setLoader] = useState(false);
       ...newError,
     });
     if (fromData.email && fromData.password) {
-        setLoader(true)
+      setLoader(true);
       signInWithEmailAndPassword(auth, fromData.email, fromData.password)
         .then((user) => {
-       
-        setLoader(false);
-        if(user.user.emailVerified){
+          setLoader(false);
+          if (user.user.emailVerified) {
             setFromData({
-                email: "",
-                password: "",
-              });
+              email: "",
+              password: "",
+            });
             toast.success(`Login Successful!`, {
-                position: "top-center",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                style: { '--dynamic-bg-color': notificationBackgroundColor.success },
-              })
-              
-              setTimeout(()=>{
-                navigate("/home")
-                dispatch(logUser(user.user))
-                
-              },1000)
-        }
-        else{
-                setLoader(false);
-                toast.error(`Please Verify Your Email`, {
-                  position: "top-center",
-                  autoClose: 5000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                  theme: "light",
-                  style: { '--dynamic-bg-color':  notificationBackgroundColor.error}
-                     
-                })
-              
-               
-        }
-          
+              position: "top-center",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+              style: {
+                "--dynamic-bg-color": notificationBackgroundColor.success,
+              },
+            });
+
+            setTimeout(() => {
+              navigate("/home");
+              dispatch(logUser(user.user));
+              localStorage.setItem("userInfo", JSON.stringify(user.user));
+            }, 1000);
+          } else {
+            setLoader(false);
+            toast.error(`Please Verify Your Email`, {
+              position: "top-center",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "light",
+              style: {
+                "--dynamic-bg-color": notificationBackgroundColor.error,
+              },
+            });
+          }
         })
         .catch((error) => {
           const errorCode = error.code;
           const errorMessage = error.message;
-          console.log(errorCode);   
+          console.log(errorCode);
 
-          if(errorCode.includes("auth")){
-            console.log("Hello world")
+          if (errorCode.includes("auth")) {
+            console.log("Hello world");
             setLoader(false);
             toast.error(`${errorCode}`, {
               position: "top-center",
@@ -121,57 +127,62 @@ const [loader, setLoader] = useState(false);
               draggable: true,
               progress: undefined,
               theme: "light",
-              style: { '--dynamic-bg-color':  notificationBackgroundColor.error}
-            })
-           }
+              style: {
+                "--dynamic-bg-color": notificationBackgroundColor.error,
+              },
+            });
+          }
         });
     }
   };
-const handleFaLogin=async()=>{
-  try {
-    const provider = new FacebookAuthProvider();
-    const result = await signInWithPopup(auth, provider);
+  const handleFaLogin = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      const result = await signInWithPopup(auth, provider);
 
-    const user = result.user;
-    const credential = FacebookAuthProvider.credentialFromResult(result);
-    const accessToken = credential.accessToken;
+      const user = result.user;
+      const credential = FacebookAuthProvider.credentialFromResult(result);
+      const accessToken = credential.accessToken;
 
-    // Update the user state
-    setFaUser(user);
+      // Update the user state
+      setFaUser(user);
 
-    console.log('Facebook user:', user);
-    console.log('Access token:', accessToken);
-  }
-  catch (error) {
-    // Handle Errors here.
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    if (errorCode === 'auth/popup-closed-by-user') {
-      console.log('User closed the popup');
-    } else {
-      console.error('Error code:', errorCode);
-      console.error('Error message:', errorMessage);
+      console.log("Facebook user:", user);
+      console.log("Access token:", accessToken);
+    } catch (error) {
+      // Handle Errors here.
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      if (errorCode === "auth/popup-closed-by-user") {
+        console.log("User closed the popup");
+      } else {
+        console.error("Error code:", errorCode);
+        console.error("Error message:", errorMessage);
+      }
     }
-  }
-  console.log('Current faUser:', faUser);
-};
-const singUpWithGoogle=()=>{
-  const provider = new GoogleAuthProvider();
-  signInWithPopup(auth, provider)
-  .then((result) => {
-    const user = result.user;
-    console.log(user)
-   
-  }).catch((error) => {
-   
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    console.log(errorCode)
-      console.log(errorMessage)
- 
-  });
-
-}
+    console.log("Current faUser:", faUser);
+  };
+  const singUpWithGoogle = () => {
+    const provider = new GoogleAuthProvider();
+    signInWithPopup(auth, provider)
+      .then((user) => {
+        navigate("/home");
+        dispatch(logUser(user.user));
+        localStorage.setItem("userInfo", JSON.stringify(user.user));
+        const db = getDatabase();
+        set(push(ref(db, "users/")), {
+          username: user.user.displayName,
+          email: user.user.email,
+          photoURL: user.user.photoURL,
+        });
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode);
+        console.log(errorMessage);
+      });
+  };
 
   return (
     <div className="authenticationPage">
@@ -222,7 +233,7 @@ const singUpWithGoogle=()=>{
             </Alert>
           )}
 
-{loader ? (
+          {loader ? (
             <Button className="SignUpBtn">
               <RotatingLines
                 strokeColor="grey"
@@ -241,14 +252,22 @@ const singUpWithGoogle=()=>{
               Login to Continue
             </Button>
           )}
-         
+
           <Typography variant="p" component="p" className="semiText">
-            Don’t have an account ? <Link className="orange" to="/"> Sign up</Link>
+            Don’t have an account ?{" "}
+            <Link className="orange" to="/">
+              {" "}
+              Sign up
+            </Link>
           </Typography>
-        <div className="loginWithAccount">
-            <button onClick={singUpWithGoogle}><img src={google} alt="" /></button>
-            <button onClick={handleFaLogin}><FaFacebook></FaFacebook></button>
-        </div>
+          <div className="loginWithAccount">
+            <button onClick={singUpWithGoogle}>
+              <img src={google} alt="" />
+            </button>
+            <button onClick={handleFaLogin}>
+              <FaFacebook></FaFacebook>
+            </button>
+          </div>
         </div>
       </div>
       <div className="right">

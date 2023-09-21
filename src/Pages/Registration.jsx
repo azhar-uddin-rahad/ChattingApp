@@ -93,7 +93,7 @@ const Registration = () => {
         .then((user) => {
           updateProfile(auth.currentUser, {
             displayName: fromData.fullName,
-            photoURL: "https://ibb.co/Qnf4m1K",
+            photoURL: "https://i.ibb.co/xGrXcnP/profile.png",
           }).then(() => {
             sendEmailVerification(auth.currentUser)
               .then(() => {
@@ -124,9 +124,9 @@ const Registration = () => {
                 }, 1000);
               })
               .then(() => {
-                console.log(user);
+                console.log();
                 const db = getDatabase();
-                set(push(ref(db, "users/")), {
+                set(ref(db, "users/" + user.user.uid) , {
                   username: user.user.displayName,
                   email: user.user.email,
                   photoURL: user.user.photoURL,

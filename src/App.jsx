@@ -13,6 +13,7 @@ import Home from "./Pages/Home";
 import RootLayout from "./RootLayout/RootLayout";
 import Msg from "./Pages/Msg";
 import Notification from "./Pages/Notification";
+import Setting from "./Pages/Setting";
 function App() {
  
   const route = createBrowserRouter(
@@ -23,6 +24,7 @@ function App() {
         <Route path="/" element={<RootLayout></RootLayout>}>
         <Route path="/home" element={<Home></Home>}></Route>
         <Route path="/message" element={<Msg></Msg>}></Route>
+        <Route path="/setting" element={<Setting></Setting>}></Route>
         <Route path="/notification" element={<Notification></Notification>}>
           
         </Route>

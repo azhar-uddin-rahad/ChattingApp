@@ -12,6 +12,7 @@ const UserList = () => {
   const [fndRequest,setFndRequest]=useState([])
   const[fnd,setFnd]=useState([])
   const currentUser=useSelector((state)=>state.loginUser.value);
+  const [blockUser,setBlockUser]=useState([])
   console.log()
   useEffect(()=>{
     const listUser = ref(db, 'users/');
@@ -19,6 +20,7 @@ onValue(listUser, (snapshot) => {
    let arr=[]
   snapshot.forEach((item)=>{
    if(currentUser.uid != item.key){
+    
      arr.push({...item.val(),userId:item.key})
 
    }
@@ -30,14 +32,25 @@ onValue(listUser, (snapshot) => {
     const friendRequestRef = ref(db, "friendRequest");
     onValue(friendRequestRef, (snapshot) => {
       let arr = [];
-      snapshot.forEach((item) => {
-        
-       arr.push(item.val().whoReceivedId + item.val().whoSendId);
-       
+      snapshot.forEach((item) => {   
+       arr.push(item.val().whoReceivedId + item.val().whoSendId);  
     });
     setFndRequest(arr);
     });
   }, []);
+  useEffect(() => {
+    const blockRef = ref(db, "block");
+    onValue(blockRef, (snapshot) => {
+      let arr = [];
+      snapshot.forEach((item) => {   
+       arr.push(item.val().whoBlockedId + item.val().whichBlockedId);  
+    });
+    setBlockUser(arr);
+    });
+  }, []);
+
+console.log(blockUser)
+
   useEffect(() => {
     const fnds = ref(db, "friends");
     onValue(fnds, (snapshot) => {
@@ -89,7 +102,6 @@ onValue(listUser, (snapshot) => {
             Pending
           </Button>
           </>
-            
              :
              fndRequest.includes(currentUser.uid  + item.userId) ? 
              <Button className="addBtn"  >
@@ -100,19 +112,18 @@ onValue(listUser, (snapshot) => {
              Friends
            </Button>
            :
+          blockUser?.includes(item.userId + currentUser.uid) || blockUser.includes(currentUser.uid + item.userId) ?
+           <Button variant="contained" className="addIcon" color="error" >
+             Block
+           </Button>
+           :
              <Button className="joinBtn" onClick={()=>{handleFriendRuk(item)}} >
              <IoMdAdd className="addIcon" />
            </Button>
             
              }
-              
-            
-            
-           
-           </div>
-          
-          
-          </>)
+        </div>
+        </>)
 
           }
              

@@ -25,8 +25,7 @@ function App() {
         <Route path="/home" element={<Home></Home>}></Route>
         <Route path="/message" element={<Msg></Msg>}></Route>
         <Route path="/setting" element={<Setting></Setting>}></Route>
-        <Route path="/notification" element={<Notification></Notification>}>
-          
+        <Route path="/notification" element={<Notification></Notification>}> 
         </Route>
         </Route>
       </Route>

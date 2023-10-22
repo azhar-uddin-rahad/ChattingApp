@@ -74,7 +74,7 @@ console.log(blockUser)
     
   }
   const cancelFndReq=(item)=>{
-    console.log(item.userId);
+    // console.log(item.userId);
     remove(ref(db,'friendRequest/' + item.userId))
 
   }

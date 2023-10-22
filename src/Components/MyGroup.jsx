@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Typography } from "@mui/material";
 import profile from "../assets/profile.png";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { getDatabase, ref, onValue, remove } from "firebase/database";
+import { getDatabase, ref, onValue, remove, set, push } from "firebase/database";
 import { useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
@@ -64,6 +64,16 @@ const MyGroup = () => {
       setMyGroupList(arr);
     });
   }, []);
+
+  const handleGroupReqAccept=(item)=>{
+    // console.log(item)
+    set(push(ref(db, 'groupMembers/')), {
+     ...item
+    }).then(()=>{
+      remove(ref(db,'joinGroupRequest/' + item.groupReqId))
+
+    });
+  }
   
   const handleGroupReqDelete=(item)=>{
     // console.log(item.groupReqId)
@@ -144,7 +154,7 @@ const MyGroup = () => {
                             {" — This user wants to join This group…"}
 
                             <div style={{marginTop: "10px"}}>
-                            <Button variant="contained" sx={{marginLeft: "5px",
+                            <Button onClick={()=>handleGroupReqAccept(item)} variant="contained" sx={{marginLeft: "5px",
                                 padding: "0px 10px",
                                 backgroundColor: "green",
                                 color:"white"

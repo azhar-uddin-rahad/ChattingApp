@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 import { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
-import { getDatabase, onValue, push, ref, set } from "firebase/database";
+import { getDatabase, onValue, push, ref, remove, set } from "firebase/database";
 import { useSelector } from "react-redux";
 
 const style = {
@@ -30,6 +30,7 @@ const Group = () => {
   const currentUser = useSelector((state) => state.loginUser.value);
   const [groupList, setGroupList] = useState([]);
   const [groupMemberList, setGroupMemberList] = useState([]);
+  const [joinedGroupMemberList, setJoinedGroupMemberList] = useState([]);
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -58,11 +59,13 @@ const Group = () => {
     onValue(groupRef, (snapshot) => {
       const arr = [];
       snapshot.forEach((item) => {
+        
         if (currentUser.uid !== item.val().adminId) {
-          arr.push({ ...item.val(), groupId: item.key });
+          arr.push({ ...item.val(), groupId: item.key,userId:currentUser.uid });
         }
       });
       setGroupList(arr);
+      console.log(arr)
     });
   }, []);
 
@@ -90,6 +93,43 @@ const handleJoinGroup = (item) => {
     });
   }, []);
 
+  useEffect(() => {
+    const groupRef = ref(db, "groupMembers/");
+    onValue(groupRef, (snapshot) => {
+      const arr = [];
+      snapshot.forEach((item) => {
+        
+        if (currentUser.uid == item.val().userId) {
+          arr.push(item.val().groupId);
+        }
+      });
+      setJoinedGroupMemberList(arr);
+   
+    });
+  }, []);
+
+  const handleGroupLeave=(item)=>{
+    remove(ref(db,'groupMembers/' + (item.groupId + item.userId)))  
+  }
+  const handleCancelGroupReq=(groupInfo)=>{
+    console.log("aafdjfhdf" + currentUser.uid)
+    
+    const groupRef = ref(db, "joinGroupRequest/");
+    let joinGroupRequestId="";
+
+    onValue(groupRef, (snapshot) => {
+      snapshot.forEach((item) => {
+        if (
+          currentUser.uid === item.val().userId &&
+          item.val().groupId === groupInfo.groupId
+        ) {
+          joinGroupRequestId=item.key
+        }
+      });
+    });
+
+    remove(ref(db,'joinGroupRequest/' + joinGroupRequestId))
+  }
 
   return (
     <div className="box scroll-container">
@@ -149,13 +189,43 @@ const handleJoinGroup = (item) => {
             <p className="messageTitle">{item.groupTagLine}</p>
           </div>
           {groupMemberList.indexOf(item.groupId) != -1 ? 
+         <>
           <Button
-          onClick={() => handleJoinGroup(item)}
           variant="contained"
           sx={{ backgroundColor: "#5f35f5" }}
         >
-           Request Send
-        </Button>
+          p
+         </Button> 
+         <Button onClick={()=>handleCancelGroupReq(item)} variant="contained" sx={{marginLeft: "5px",
+        padding: "0px 10px",
+        backgroundColor: "red",
+        color:"white"
+      }}
+    >
+      Cancel
+    </Button>
+         
+         </>
+          :
+          joinedGroupMemberList.indexOf(item.groupId) != -1 ? 
+          <>
+          <Button
+          variant="contained"
+          sx={{ backgroundColor: "#5f35f5" }}
+        >
+          Joined
+          
+        </Button>  
+        <Button onClick={()=>handleGroupLeave(item)} variant="contained" sx={{marginLeft: "5px",
+        padding: "0px 10px",
+        backgroundColor: "red",
+        color:"white"
+      }}
+    >
+      leave
+    </Button>
+          
+          </>
           :
           <Button
           onClick={() => handleJoinGroup(item)}

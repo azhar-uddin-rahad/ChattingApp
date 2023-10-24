@@ -28,12 +28,15 @@ const style = {
 };
 
 const MyGroup = () => {
-  const [open, setOpen] = useState(false);
-  const handleClose = () => setOpen(false);
-  const [myGroupList, setMyGroupList] = useState([]);
-  const [myGroupListReq, setMyGroupListReq] = useState([]);
   const db = getDatabase();
   const currentUser = useSelector((state) => state.loginUser.value);
+  const [open, setOpen] = useState(false);
+  const [open2, setOpen2] = useState(false);
+  const handleClose = () => setOpen(false);
+  const handleClose2 = () => setOpen2(false);
+  const [myGroupList, setMyGroupList] = useState([]);
+  const [myGroupListReq, setMyGroupListReq] = useState([]);
+  const [myGroupMember,setMyGroupMember]=useState([]);
   const handleOpen = (groupInfo) => {
     const groupRef = ref(db, "joinGroupRequest/");
     onValue(groupRef, (snapshot) => {
@@ -52,6 +55,23 @@ const MyGroup = () => {
     setOpen(true);
   };
 
+  const handleOpen2 = (groupInfo) => {
+    const groupMemberRef = ref(db, "groupMembers/");
+    onValue(groupMemberRef, (snapshot) => {
+      const arr = [];
+      snapshot.forEach((item) => {
+        if (
+          currentUser.uid === item.val().adminId &&
+          item.val().groupId === groupInfo.groupId
+        ) {
+          arr.push({...item.val(),groupMemberId:item.key});
+        }
+      });
+      setMyGroupMember(arr);
+    });  
+    setOpen2(true);
+  };
+
   useEffect(() => {
     const groupRef = ref(db, "Group/");
     onValue(groupRef, (snapshot) => {
@@ -66,12 +86,11 @@ const MyGroup = () => {
   }, []);
 
   const handleGroupReqAccept=(item)=>{
-    // console.log(item)
-    set(push(ref(db, 'groupMembers/')), {
+    console.log(item.groupId + item.userId)
+    set(ref(db, 'groupMembers/' + (item.groupId + item.userId)), {
      ...item
     }).then(()=>{
       remove(ref(db,'joinGroupRequest/' + item.groupReqId))
-
     });
   }
   
@@ -79,6 +98,10 @@ const MyGroup = () => {
     // console.log(item.groupReqId)
     remove(ref(db,'joinGroupRequest/' + item.groupReqId))
 
+  }
+  const handleGroupMemberDelete=(item)=>{
+    console.log(item.groupMemberId)
+    remove(ref(db,'groupMembers/' + item.groupMemberId))
   }
 
 
@@ -182,6 +205,7 @@ const MyGroup = () => {
             </Box>
           </Modal>
           <Button
+            onClick={()=>{handleOpen2(item)}}
             variant="contained"
             sx={{
               marginLeft: "5px",
@@ -191,6 +215,78 @@ const MyGroup = () => {
           >
             Member
           </Button>
+          <Modal
+            open={open2}
+            onClose={handleClose2}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Box sx={style}>
+              <List
+                sx={{
+                  width: "100%",
+                  maxWidth: 360,
+                  bgcolor: "background.paper",
+                }}
+              >
+                <Typography
+                      sx={{
+                        display: "block",
+                        fontSize: "24px",
+                        borderBottom: "1px solid gray",
+                        padding: "10px",
+                      }}
+                      component="span"
+                      variant="body2"
+                      color="text.primary"
+                    >
+                      Group Member
+                    </Typography>
+                {myGroupMember.map((item, index) => (
+                  <>
+                    
+                    <ListItem alignItems="flex-start">
+                      <ListItemAvatar>
+                        <Avatar
+                          alt="Remy Sharp"
+                          src="/static/images/avatar/1.jpg"
+                        />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={`${item.userName}`}
+                        secondary={
+                          <React.Fragment>
+                            {" — This user wants to join This group…"}
+
+                            <div style={{marginTop: "10px"}}>
+                            <Button  variant="contained" sx={{marginLeft: "5px",
+                                padding: "0px 10px",
+                                backgroundColor: "green",
+                                color:"white"
+                              }}
+                            >
+                              Member
+                            </Button>
+                            <Button onClick={()=>handleGroupMemberDelete(item)} variant="contained" sx={{marginLeft: "5px",
+                                padding: "0px 10px",
+                                backgroundColor: "red",
+                                color:"white"
+                              }}
+                            >
+                              Delete
+                            </Button>
+                            </div>
+                          </React.Fragment>
+                        }
+                      />
+                    </ListItem>
+                    <Divider variant="inset" component="li" />
+                  </>
+                ))}
+              </List>
+            </Box>
+          </Modal>
+
         </div>
       ))}
     </div>

@@ -6,20 +6,22 @@ import UserList from '../Components/UserList';
 import FriendRequest from '../Components/FriendRequest';
 import MyGroup from '../Components/MyGroup';
 import BlockedUser from '../Components/BlockedUser';
+import GroupMsg from '../Components/GroupMsg';
+import Chatbox from '../Components/Chatbox';
 const Msg = () => {
   return (
     <div>
        <Grid container spacing={2}>
         <Grid item xs={4}>
-        <FriendRequest></FriendRequest>
-        <Group/>
+        <FriendsList></FriendsList>
+        <GroupMsg/>
         </Grid>
         <Grid item xs={8}>
-         <FriendsList></FriendsList>
-         <MyGroup></MyGroup>
+          
+       < Chatbox/>
+         
         </Grid>
-        
-        
+          
       </Grid>
        
     </div>

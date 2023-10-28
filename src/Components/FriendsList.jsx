@@ -1,8 +1,8 @@
 import { Button } from "@mui/material";
 import profile from "../assets/profile.png";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { useSelector } from "react-redux";
-import{FaComments} from 'react-icons/fa'
+import { useSelector, useDispatch } from "react-redux";
+import { FaComments } from "react-icons/fa";
 import {
   getDatabase,
   ref,
@@ -12,8 +12,11 @@ import {
   remove,
 } from "firebase/database";
 import { useEffect, useState } from "react";
+import { activeChatMessage } from "../slice/ActiveChatSlice";
 const FriendsList = ({ buttons }) => {
   const currentUser = useSelector((state) => state.loginUser.value);
+  const dispatch = useDispatch();
+
   const db = getDatabase();
   const [friends, setFriends] = useState([]);
 
@@ -31,6 +34,32 @@ const FriendsList = ({ buttons }) => {
         }
       });
       setFriends(arr);
+      if (currentUser.uid === arr[0].whoSendId) {
+        console.log(arr[0].whoReceivedId);
+        dispatch(activeChatMessage({
+          type : "singleMsg",
+          name : arr[0].whoReceivedName,
+          id :arr[0].whoReceivedId
+        }))
+        localStorage.setItem("activeChat",JSON.stringify({
+          type : "singleMsg",
+          name : arr[0].whoReceivedName,
+          id :arr[0].whoReceivedId
+        }))
+      } else {
+        console.log(arr[0].whoSendId);
+        dispatch(activeChatMessage({
+          type : "singleMsg",
+          name : arr[0].whoSendName,
+          id :arr[0].whoSendId
+        }))
+        localStorage.setItem("activeChat",JSON.stringify({
+          type : "singleMsg",
+          name : arr[0].whoSendName,
+          id :arr[0].whoSendId
+        }))
+      }
+
     });
   }, []);
 
@@ -62,9 +91,33 @@ const FriendsList = ({ buttons }) => {
     }
   };
 
-  const handleMsg=(item)=>{
-    console.log(item)
-  }
+  const handleMsg = (item) => {
+    if (currentUser.uid === item.whoSendId) {
+      console.log(item.whoReceivedId);
+      dispatch(activeChatMessage({
+        type : "singleMsg",
+        name : item.whoReceivedName,
+        id :item.whoReceivedId
+      }))
+      localStorage.setItem("activeChat",JSON.stringify({
+        type : "singleMsg",
+        name : item.whoReceivedName,
+        id :item.whoReceivedId
+      }))
+    } else {
+      console.log(item.whoSendId);
+      dispatch(activeChatMessage({
+        type : "singleMsg",
+        name : item.whoSendName,
+        id :item.whoSendId
+      }))
+      localStorage.setItem("activeChat",JSON.stringify({
+        type : "singleMsg",
+        name : item.whoSendName,
+        id :item.whoSendId
+      }))
+    }
+  };
 
   return (
     <div className="box scroll-container">

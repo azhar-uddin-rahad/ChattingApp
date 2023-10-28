@@ -1,10 +1,45 @@
-import React from "react";
+import React, { useState } from "react";
 import profile from "../assets/profile.png";
 import uploadPhoto from "../assets/reg.png";
 import { BiDotsVertical } from "react-icons/bi";
 import ModalImage from "react-modal-image";
-import Button from '@mui/material/Button';
+import Button from "@mui/material/Button";
+import { useSelector } from "react-redux";
+import { getDatabase, push, ref, set } from "firebase/database";
+
 const Chatbox = () => {
+  const currentUser = useSelector((state) => state.loginUser.value);
+  const activeChat = useSelector((state) => state.activeChat.chat);
+  const [msg, setMsg] = useState("");
+  const db = getDatabase();
+  const data = {
+    whoSendName: currentUser.displayName,
+    whoSendId: currentUser.uid,
+    whoReceiveName: activeChat.name,
+    whoReceivedId: activeChat.id,
+    msg: msg,
+    date: `${new Date().getFullYear()}-${
+      new Date().getMonth() + 1
+    }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+  };
+  const handleSendMessage = () => {
+    console.log(`${new Date().getFullYear()}-${
+      new Date().getMonth() + 1
+    }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`)
+    if (msg != "") {
+      set(push(ref(db, "singlemsg/")), {
+        whoSendName: currentUser.displayName,
+        whoSendId: currentUser.uid,
+        whoReceiveName: activeChat.name,
+        whoReceivedId: activeChat.id,
+        msg: msg,
+        date: `${new Date().getFullYear()}-${
+          new Date().getMonth() + 1
+        }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+      });
+    }
+  };
+
   return (
     <div className="chatBoxContainer">
       <div className="chatBox">
@@ -14,7 +49,7 @@ const Chatbox = () => {
               <img src={profile} alt="" />
             </div>
             <div>
-              <p>Azhar uddin Rahad</p>
+              <p>{activeChat.name}</p>
               <p>Online</p>
             </div>
           </div>
@@ -168,21 +203,23 @@ const Chatbox = () => {
           </div>
           <div className="msg">
             <div className="sendVoice">
-            <audio controls></audio>
+              <audio controls></audio>
             </div>
             <p className="time">Today, 2:02pm</p>
           </div>
-
-
         </div>
-        
       </div>
       <div className="messageInputBox">
         <div className="inputBox">
-          <input type="text" />
+          <input onChange={(e) => setMsg(e.target.value)} type="text" />
         </div>
-        <Button  variant="contained" sx={{background: "#5f35f5",padding:"10px 30px",color: "#fff"}}>Send</Button>
-        
+        <Button
+          onClick={handleSendMessage}
+          variant="contained"
+          sx={{ background: "#5f35f5", padding: "10px 30px", color: "#fff" }}
+        >
+          Send
+        </Button>
       </div>
     </div>
   );

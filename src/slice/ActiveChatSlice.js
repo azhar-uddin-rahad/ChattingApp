@@ -1,20 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
- chat:  null,
+ chat:  localStorage.getItem("activeChat") ? JSON.parse(localStorage.getItem("activeChat")) : null,
 }
 
 export const activeChatSlice = createSlice({
   name: 'chat',
   initialState,
   reducers: {
-    chatMessage: (state,actions) => {
+    activeChatMessage: (state,actions) => {
       state.chat = actions.payload
     }
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { chatMessage } = activeChatSlice.actions
+export const { activeChatMessage } = activeChatSlice.actions
 
 export default activeChatSlice.reducer

@@ -2,10 +2,17 @@ import { Button } from "@mui/material";
 import profile from "../assets/profile.png";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { useSelector } from "react-redux";
-
-import { getDatabase, ref, set, onValue, push, remove } from "firebase/database";
+import{FaComments} from 'react-icons/fa'
+import {
+  getDatabase,
+  ref,
+  set,
+  onValue,
+  push,
+  remove,
+} from "firebase/database";
 import { useEffect, useState } from "react";
-const FriendsList = () => {
+const FriendsList = ({ buttons }) => {
   const currentUser = useSelector((state) => state.loginUser.value);
   const db = getDatabase();
   const [friends, setFriends] = useState([]);
@@ -16,9 +23,11 @@ const FriendsList = () => {
       const arr = [];
       snapshot.forEach((item, index) => {
         console.log(item);
-        if (currentUser.uid === item.val().whoReceivedId ||
-          currentUser.uid === item.val().whoSendId ) {
-          arr.push({...item.val(),friendsDataCollectionId:item.key});
+        if (
+          currentUser.uid === item.val().whoReceivedId ||
+          currentUser.uid === item.val().whoSendId
+        ) {
+          arr.push({ ...item.val(), friendsDataCollectionId: item.key });
         }
       });
       setFriends(arr);
@@ -27,35 +36,34 @@ const FriendsList = () => {
 
   const cancelFndShip = (item) => {
     console.log(item.friendsDataCollectionId);
-    remove(ref(db,'friends/' + item.friendsDataCollectionId))
+    remove(ref(db, "friends/" + item.friendsDataCollectionId));
   };
 
-  const handleBlockFnd=(item)=>{
+  const handleBlockFnd = (item) => {
     console.log(item);
-    if(currentUser.uid == item.whoSendId){
-      set(push(ref(db, 'block/')), {
-        whichBlockedId : item.whoReceivedId,
+    if (currentUser.uid == item.whoSendId) {
+      set(push(ref(db, "block/")), {
+        whichBlockedId: item.whoReceivedId,
         whichBlockedName: item.whoReceivedName,
         whoBlockedId: item.whoSendId,
-        whoBlockedName : item.whoSendName
-      })
-      .then(() => {
-        remove(ref(db,'friends/' + item.friendsDataCollectionId))
-      })
-    }
-    else{
-      set(push(ref(db, 'block/')), {
-        whichBlockedId : item.whoSendId,
+        whoBlockedName: item.whoSendName,
+      }).then(() => {
+        remove(ref(db, "friends/" + item.friendsDataCollectionId));
+      });
+    } else {
+      set(push(ref(db, "block/")), {
+        whichBlockedId: item.whoSendId,
         whichBlockedName: item.whoSendName,
-        whoBlockedId:item.whoReceivedId,
-        whoBlockedName : item.whoReceivedName
-      })
-      .then(() => {
-        remove(ref(db,'friends/' + item.friendsDataCollectionId))
-      })
-
+        whoBlockedId: item.whoReceivedId,
+        whoBlockedName: item.whoReceivedName,
+      }).then(() => {
+        remove(ref(db, "friends/" + item.friendsDataCollectionId));
+      });
     }
-    
+  };
+
+  const handleMsg=(item)=>{
+    console.log(item)
   }
 
   return (
@@ -79,13 +87,30 @@ const FriendsList = () => {
             </h4>
             <p className="messageTitle">Hi Guys, Wassup!</p>
           </div>
-          <Button className="joinBtn" onClick={()=>handleBlockFnd(item)}>B</Button>
-          <Button
-            className="addBtn"
-            onClick={() => {cancelFndShip(item) }}
-          >
-            C
-          </Button>
+          {buttons === "msg" ? (
+            <Button
+              className="addBtn"
+              onClick={() => {
+                handleMsg(item);
+              }}
+            >
+              <FaComments></FaComments>MSG
+            </Button>
+          ) : (
+            <>
+              <Button className="joinBtn" onClick={() => handleBlockFnd(item)}>
+                B
+              </Button>
+              <Button
+                className="addBtn"
+                onClick={() => {
+                  cancelFndShip(item);
+                }}
+              >
+                C
+              </Button>
+            </>
+          )}
         </div>
       ))}
     </div>

@@ -13,13 +13,11 @@ const Msg = () => {
     <div>
        <Grid container spacing={2}>
         <Grid item xs={4}>
-        <FriendsList></FriendsList>
+        <FriendsList buttons="msg"></FriendsList>
         <GroupMsg/>
         </Grid>
-        <Grid item xs={8}>
-          
-       < Chatbox/>
-         
+        <Grid item xs={8}>        
+       < Chatbox/> 
         </Grid>
           
       </Grid>

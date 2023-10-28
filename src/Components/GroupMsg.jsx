@@ -2,7 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Button, Typography } from "@mui/material";
 import profile from "../assets/profile.png";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { getDatabase, ref, onValue, remove, set, push } from "firebase/database";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  remove,
+  set,
+  push,
+} from "firebase/database";
 import { useSelector } from "react-redux";
 import Box from "@mui/material/Box";
 import Modal from "@mui/material/Modal";
@@ -14,48 +21,68 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import Avatar from "@mui/material/Avatar";
 
 const GroupMsg = () => {
-    const db = getDatabase();
+  const db = getDatabase();
   const currentUser = useSelector((state) => state.loginUser.value);
-  const [open, setOpen] = useState(false);
   const [myGroupList, setMyGroupList] = useState([]);
-  const [myGroupListReq, setMyGroupListReq] = useState([]);
-  const [myGroupMember,setMyGroupMember]=useState([]);
+  const [myGroupMember, setMyGroupMember] = useState([]);
   useEffect(() => {
     const groupRef = ref(db, "Group/");
     onValue(groupRef, (snapshot) => {
       const arr = [];
       snapshot.forEach((item) => {
-        if (currentUser.uid == item.val().adminId) {
-          arr.push({ ...item.val(), groupId: item.key });
-        }
+        arr.push({ ...item.val(), groupId: item.key });
       });
       setMyGroupList(arr);
     });
   }, []);
+
+  useEffect(() => {
+    const groupMemberRef = ref(db, "groupMembers/");
+    onValue(groupMemberRef, (snapshot) => {
+      const arr = [];
+      snapshot.forEach((item) => {
+        console.log(item.val())
+        arr.push(item.val());
+      });
+      setMyGroupMember(arr);
+    });
+  }, []);
   return (
     <div className="box scroll-container">
-    <div className="group-heading">
-         {myGroupList.map((item, index) => (
-        <div key={index} className="group-card-body">
+      <div className="group-heading">
+      <h3>Groups List</h3>
+      </div>
+        {myGroupList.map((item, index) => 
+          currentUser.uid == item.adminId ? (
+          <div key={index} className="group-card-body">
+            <div className="profile">
+              <img src={profile} alt="" />
+            </div>
+            <div className="title">
+              <p className="messageTitle">Admin :{item.adminName}</p>
+              <h4 className="groupsName">{item.groupName}</h4>
+              <p className="messageTitle">{item.groupTagLine}</p>
+            </div>
+            <Button
+              variant="contained"
+              sx={{ padding: "0px 10px", backgroundColor: "#5f35f5" }}
+            >
+              Admin
+            </Button>
+
+           
+          </div>
+        ) : myGroupMember.map((member,idx)=>(
+          currentUser.uid == member.userId && item.groupId === member.groupId &&  <div key={index} className="group-card-body">
           <div className="profile">
             <img src={profile} alt="" />
           </div>
           <div className="title">
-            <p className="messageTitle">Admin :{item.adminName}</p>
-            <h4 className="groupsName">{item.groupName}</h4>
-            <p className="messageTitle">{item.groupTagLine}</p>
+            <p className="messageTitle">Admin :{member.adminName}</p>
+            <h4 className="groupsName">{member.groupName}</h4>
+            <p className="messageTitle">{member.groupTagLine}</p>
           </div>
           <Button
-           
-            variant="contained"
-            sx={{ padding: "0px 10px", backgroundColor: "#5f35f5" }}
-          >
-            Request
-          </Button>
-        
-            
-          <Button
-            
             variant="contained"
             sx={{
               marginLeft: "5px",
@@ -65,17 +92,13 @@ const GroupMsg = () => {
           >
             Member
           </Button>
-
-         
-    </div>
-
-        ))}
         </div>
-  
-</div>
-  
-  
-  
-  )}
+        )))}
+       
 
-export default GroupMsg
+     
+    </div>
+  );
+};
+
+export default GroupMsg;

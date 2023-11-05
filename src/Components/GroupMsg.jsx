@@ -44,14 +44,14 @@ const GroupMsg = () => {
     onValue(groupMemberRef, (snapshot) => {
       const arr = [];
       snapshot.forEach((item) => {
-        console.log(item.val())
+        // console.log(item.val())
         arr.push(item.val());
       });
       setMyGroupMember(arr);
     });
   }, []);
   const handleGroupMessage=(item)=>{
-      console.log(item)
+      // console.log(item)
       dispatch(activeChatMessage({
         type : "groupMsg",
         name : item.groupName,

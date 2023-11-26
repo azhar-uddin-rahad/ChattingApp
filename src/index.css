@@ -2,6 +2,17 @@
   margin: 0;
   padding: 0;
 }
+.App{
+  position: relative;
+}
+.switchBtn{
+  position: absolute !important;
+  top: 50px;
+  left: 30px;
+}
+.dark{
+  background: #000;
+}
 .ml-2 {
   margin-left: 10px;
 }
@@ -156,10 +167,13 @@
   height: 100%;
   border-radius: 100px;
 }
+.dark .box{
+  background: #000;
+  box-shadow: 0px 4px 4px 0px rgba(255, 255, 255, 0.943);
+}
 
 .box {
   width: 100%;
-
   margin-bottom: 40px;
   padding: 20px;
   margin-top: 10px;
@@ -182,6 +196,10 @@
 .logout {
   color: #fff;
 }
+.dark .group-heading{
+  background-color: #000;
+  color: #ffff;
+}
 .group-heading {
   display: flex;
   z-index: 10;
@@ -202,6 +220,9 @@
   width: 100%;
   height: 100%;
 }
+.dark .group-card-body{
+  border-bottom: 1px solid rgb(254, 255, 251);
+}
 .group-card-body {
   margin-top: 17px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.25);
@@ -212,10 +233,16 @@
 .group-card-body:last-child {
   border: none;
 }
+.dark .groupsName{
+  color: #fff;
+}
 .groupsName {
   font-size: 18px;
   font-weight: 600;
   color: #000;
+}
+.dark .messageTitle{
+  color: #fff;
 }
 .messageTitle {
   font-size: 14px;
@@ -248,12 +275,17 @@
 .addIcon {
   color: hwb(0 100% 0%) !important;
 }
+
 .author {
   font-size: 18px;
   color: #fff;
   font-weight: 7000;
   margin-top: 5px;
   text-align: center;
+}
+.dark .chatBoxContainer{
+  background: #000000;
+  box-shadow: 0px 4px 4px 0px rgba(255, 252, 252, 0.906);
 }
 .chatBoxContainer{
   height: 100%;

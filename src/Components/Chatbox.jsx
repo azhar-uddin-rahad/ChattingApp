@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import profile from "../assets/profile.png";
 import uploadPhoto from "../assets/reg.png";
 import { BiDotsVertical } from "react-icons/bi";
+import { BsFillEmojiSmileUpsideDownFill } from "react-icons/bs";
 import ModalImage from "react-modal-image";
 import Button from "@mui/material/Button";
 import { useSelector } from "react-redux";
 import { getDatabase, onValue, push, ref, set } from "firebase/database";
 import { LinearProgressWithLabel } from "../Components/ImageProgress";
+import EmojiPicker from "emoji-picker-react";
 import {
   getStorage,
   ref as imgRef,
@@ -15,7 +17,7 @@ import {
 } from "firebase/storage";
 import { BsFileEarmarkImage } from "react-icons/bs";
 import moment from "moment";
-
+import { AudioRecorder } from "react-audio-voice-recorder";
 const Chatbox = () => {
   const currentUser = useSelector((state) => state.loginUser.value);
   const activeChat = useSelector((state) => state.activeChat.chat);
@@ -23,7 +25,18 @@ const Chatbox = () => {
   const [messageList, setMessageList] = useState([]);
   const [groupMessageList, setGroupMessageList] = useState([]);
   const db = getDatabase();
+  const storage = getStorage();
   const [progress, setProgress] = useState(0);
+  const [showEmoji, setShowEmoji] = useState(false);
+  const [audioUrl, setAudioUrl] = useState("");
+  const [audioUp, setAudioUp] = useState("");
+  const addAudioElement = (blob) => {
+    const url = URL.createObjectURL(blob);
+    const audio = document.createElement("audio");
+    audio.src = url;
+    setAudioUrl(url);
+    setAudioUp(blob);
+  };
 
   const handleSendMessage = () => {
     if (activeChat.type == "groupMsg") {
@@ -121,14 +134,11 @@ const Chatbox = () => {
   };
   const handleImageUpload = (e) => {
     console.log(e.target.files[0]);
-    const storage = getStorage();
     const storageRef = imgRef(storage, `${e.target.files[0].name}`);
     const uploadTask = uploadBytesResumable(storageRef, e.target.files[0]);
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        // Observe state change events such as progress, pause, and resume
-        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
         const progress =
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         setProgress(progress);
@@ -178,6 +188,62 @@ const Chatbox = () => {
       }
     );
   };
+  const handleEmoji = (emo) => {
+    console.log(emo.emoji);
+    setMsg(msg + emo.emoji);
+  };
+  const handleAudioMessage = () => {
+    console.log(audioUrl);
+    console.log(audioUp);
+
+    const storageRef = imgRef(storage, audioUrl);
+    const uploadTask = uploadBytesResumable(storageRef, audioUp);
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress =
+          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setProgress(progress);
+      },
+      (error) => {
+        // Handle unsuccessful uploads
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+          setProgress(0);
+          console.log("azhar azhar azhar azhar", downloadURL);
+          setAudioUrl("")
+          setAudioUp("")
+          if (activeChat.type == "groupMsg") {
+            set(push(ref(db, "groupmsg/")), {
+              whoSendName: currentUser.displayName,
+              whoSendId: currentUser.uid,
+              whoReceiveName: activeChat.name,
+              whoReceivedId: activeChat.id,
+              audio: downloadURL,
+              date: `${new Date().getFullYear()}-${
+                new Date().getMonth() + 1
+              }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+            });
+          } else {
+            set(push(ref(db, "singlemsg/")), {
+              whoSendName: currentUser.displayName,
+              whoSendId: currentUser.uid,
+              whoReceiveName: activeChat.name,
+              whoReceivedId: activeChat.id,
+              audio: downloadURL,
+              date: `${new Date().getFullYear()}-${
+                new Date().getMonth() + 1
+              }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+            });
+          }
+          
+        });
+      }
+    );
+    
+  };
+
   return (
     <div className="chatBoxContainer">
       <div className="chatBox">
@@ -213,7 +279,7 @@ const Chatbox = () => {
                           {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
                         </p>
                       </>
-                    ) : (
+                    ) : item.img ? (
                       <>
                         <div className="sendImg">
                           <ModalImage
@@ -221,7 +287,16 @@ const Chatbox = () => {
                             large={item.img}
                             alt="picture"
                           />
-                           <div className="sendImgArrow"></div>
+                          <div className="sendImgArrow"></div>
+                        </div>
+                        <p className="time">
+                          {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="sendVoice">
+                          <audio src={item.audio} controls></audio>
                         </div>
                         <p className="time">
                           {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
@@ -245,7 +320,7 @@ const Chatbox = () => {
                             {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
                           </p>
                         </>
-                      ) : (
+                      ) : item.img ? (
                         <>
                           <div className="getImg">
                             <ModalImage
@@ -258,7 +333,15 @@ const Chatbox = () => {
                           <p className="time">
                             {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
                           </p>
-
+                        </>
+                      ) : (
+                        <>
+                          <div className="getVoice">
+                            <audio src={item.audio} controls></audio>
+                          </div>
+                          <p className="time">
+                            {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
+                          </p>
                         </>
                       )}
                     </div>
@@ -280,7 +363,7 @@ const Chatbox = () => {
                           {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
                         </p>
                       </>
-                    ) : (
+                    ) : item.img ?(
                       <>
                         <div className="sendImg">
                           <ModalImage
@@ -288,7 +371,15 @@ const Chatbox = () => {
                             large={item.img}
                             alt="picture"
                           />
-                           <div className="sendImgArrow"></div>
+                          <div className="sendImgArrow"></div>
+                        </div>
+                        <p className="time">
+                          {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
+                        </p>
+                      </>
+                    ) : (<>
+                        <div className="sendVoice">
+                          <audio src={item.audio} controls></audio>
                         </div>
                         <p className="time">
                           {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
@@ -311,7 +402,7 @@ const Chatbox = () => {
                             {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
                           </p>
                         </>
-                      ) : (
+                      ) : item.img ?(
                         <>
                           <div className="getImg">
                             <ModalImage
@@ -324,7 +415,15 @@ const Chatbox = () => {
                           <p className="time">
                             {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
                           </p>
-
+                        </>
+                      ) : (
+                        <>
+                          <div className="getVoice">
+                            <audio src={item.audio} controls></audio>
+                          </div>
+                          <p className="time">
+                            {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
+                          </p>
                         </>
                       )}
                     </div>
@@ -396,7 +495,36 @@ const Chatbox = () => {
             onKeyUp={handleKeyPress}
             onChange={(e) => handleMessage(e)}
             type="text"
+            value={msg}
           />
+          {audioUrl && (
+            <audio src={audioUrl} className="audioContainer"  controls></audio>
+          )}
+          <BsFillEmojiSmileUpsideDownFill
+            onClick={() => setShowEmoji(!showEmoji)}
+            style={{
+              fontSize: "40px",
+              position: "absolute",
+              right: "20%",
+              bottom: "10px",
+              color: "#407BFF",
+            }}
+          ></BsFillEmojiSmileUpsideDownFill>
+          <AudioRecorder
+            onRecordingComplete={addAudioElement}
+            audioTrackConstraints={{
+              noiseSuppression: true,
+              echoCancellation: true,
+            }}
+            downloadOnSavePress={true}
+            downloadFileExtension="webm"
+          />
+
+          {showEmoji && (
+            <div className="emoji">
+              <EmojiPicker onEmojiClick={handleEmoji} />
+            </div>
+          )}
         </div>
         <label htmlFor="uploadImg">
           <BsFileEarmarkImage
@@ -407,6 +535,7 @@ const Chatbox = () => {
               bottom: "10px",
             }}
           ></BsFileEarmarkImage>
+
           <input
             type="file"
             onChange={(e) => {
@@ -416,13 +545,43 @@ const Chatbox = () => {
             id="uploadImg"
           />
         </label>
-        <Button
-          onClick={handleSendMessage}
-          variant="contained"
-          sx={{ background: "#5f35f5", padding: "10px 30px", color: "#fff" }}
-        >
-          Send
-        </Button>
+        {audioUrl && (
+          <>
+            <Button
+              onClick={handleAudioMessage}
+              variant="contained"
+              
+              sx={{
+                background: "#5f35f5",
+                padding: "10px 30px",
+                color: "#fff",
+              }}
+            >
+              Send
+            </Button>
+            <Button
+              onClick={() => setAudioUrl("")}
+              variant="contained"
+              sx={{
+                background: "#5f35f5",
+                padding: "10px 30px",
+                color: "#fff",
+              }}
+            >
+              X
+            </Button>
+          </>
+        )}
+
+        {!audioUrl && (
+          <Button
+            onClick={handleSendMessage}
+            variant="contained"
+            sx={{ background: "#5f35f5", padding: "10px 30px", color: "#fff" }}
+          >
+            Send
+          </Button>
+        )}
       </div>
     </div>
   );
